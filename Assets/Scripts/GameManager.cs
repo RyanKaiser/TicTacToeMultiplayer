@@ -33,8 +33,8 @@ public class GameManager : NetworkBehaviour
    public event EventHandler<OnGameWinEventArgs> OnGameWin;
    public class OnGameWinEventArgs : EventArgs
    {
-      // public Vector2Int centerGridPosition;
       public Line line;
+      public PlayerType winPlayerType;
    }
    public event EventHandler OnCurrentPlayablePlayerTypeChanged;
 
@@ -206,11 +206,16 @@ public class GameManager : NetworkBehaviour
       TestWinner();
    }
 
-   // [Rpc(SendTo.ClientsAndHost)]
-   // private void TriggerOnCurrentPlayablePlayerTypeChangedRpc()
-   // {
-   //    OnCurrentPlayablePlayerTypeChanged?.Invoke(this, EventArgs.Empty);
-   // }
+   [Rpc(SendTo.ClientsAndHost)]
+   private void TriggerOnGameWinRpc(int lineIndex, PlayerType winPlayerType)
+   {
+      Line line = lineList[lineIndex];
+      OnGameWin?.Invoke(this, new OnGameWinEventArgs
+      {
+         line = line,
+         winPlayerType = winPlayerType//[line.CenterGridPosition.x, line.CenterGridPosition.y]
+      });
+   }
 
    public PlayerType GetLocalPlayerType()
    {
@@ -241,25 +246,18 @@ public class GameManager : NetworkBehaviour
 
    private void TestWinner()
    {
-      foreach(var line in lineList)
+      // foreach(var line in lineList)
+      for (int i = 0; i < lineList.Count; i++)
       {
+         Line line = lineList[i];
          if (TestWinnerLine(line))
          {
             Debug.Log("Winner!");
             _currentPlayablePlayerType.Value = PlayerType.None;
-            OnGameWin?.Invoke(this, new OnGameWinEventArgs
-            {
-               line = line
-            });
+            TriggerOnGameWinRpc(i, playerTypeArray[line.CenterGridPosition.x, line.CenterGridPosition.y]);
             break;
          }
       }
-
-      // if (TestWinnerLine(
-      //        playerTypeArray[0, 0],
-      //        playerTypeArray[1, 0],
-      //        playerTypeArray[2, 0]))
-
    }
 
 }
