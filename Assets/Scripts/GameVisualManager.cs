@@ -6,6 +6,7 @@ public class GameVisualManager : NetworkBehaviour
 {
     [SerializeField] private Transform crossPrefab;
     [SerializeField] private Transform circlePrefab;
+    [SerializeField] private Transform lineCompletePrefab;
     private const float GRID_SIZE = 3.1f;
     private void Awake()
     {
@@ -15,6 +16,33 @@ public class GameVisualManager : NetworkBehaviour
     private void Start()
     {
         GameManager.Instance.OnClickedOnGridPosition += GameManager_OnClickedOnGridPosition;
+        GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+    }
+
+    private void GameManager_OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
+    {
+        float eularAngle = 0f;
+        switch (e.line.Orientation)
+        {
+            case GameManager.Orientation.Horizontal:
+                eularAngle = 0f;
+                break;
+            case GameManager.Orientation.Vertical :
+                eularAngle = 90f;
+                break;
+            case GameManager.Orientation.DiagonalA:
+                eularAngle = 45f;
+                break;
+            case GameManager.Orientation.DiagonalB:
+                eularAngle = -45f;
+                break;
+        }
+        Transform lineCompleteTransform =  Instantiate(
+            lineCompletePrefab,
+            GetGridWorldPosition(e.line.CenterGridPosition.x, e.line.CenterGridPosition.y),
+            Quaternion.Euler(0, 0, eularAngle));
+        lineCompleteTransform.GetComponent<NetworkObject>().Spawn(true);
+
     }
 
     private void GameManager_OnClickedOnGridPosition(object sender, GameManager.OnClickedOnGridPositionEventArgs e)
