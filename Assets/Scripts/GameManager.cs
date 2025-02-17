@@ -40,6 +40,7 @@ public class GameManager : NetworkBehaviour
    public event EventHandler OnCurrentPlayablePlayerTypeChanged;
    public event EventHandler OnGameRematch;
    public event EventHandler OnGameTie;
+   public event EventHandler OnScoreChanged;
 
    public enum PlayerType
    {
@@ -67,6 +68,8 @@ public class GameManager : NetworkBehaviour
    private NetworkVariable<PlayerType> _currentPlayablePlayerType = new NetworkVariable<PlayerType>();
    private PlayerType[,] playerTypeArray;
    private List<Line> lineList;
+   private NetworkVariable<int> _playerCrossScore = new NetworkVariable<int>();
+   private NetworkVariable<int> _playerCircleScore = new NetworkVariable<int>();
 
 
    private void Awake()
@@ -156,7 +159,14 @@ public class GameManager : NetworkBehaviour
          OnCurrentPlayablePlayerTypeChanged?.Invoke(this, EventArgs.Empty);
       };
 
-
+      _playerCrossScore.OnValueChanged += (int prevScore, int newScore) =>
+      {
+         OnScoreChanged?.Invoke(this, EventArgs.Empty);
+      };
+      _playerCircleScore.OnValueChanged += (int prevScore, int newScore) =>
+      {
+         OnScoreChanged?.Invoke(this, EventArgs.Empty);
+      };
    }
 
    private void NetworkManager_OnClientConnectedCallBack(ulong obj)
@@ -281,7 +291,14 @@ public class GameManager : NetworkBehaviour
          {
             Debug.Log("Winner!");
             _currentPlayablePlayerType.Value = PlayerType.None;
-            TriggerOnGameWinRpc(i, playerTypeArray[line.CenterGridPosition.x, line.CenterGridPosition.y]);
+            PlayerType winner = playerTypeArray[line.CenterGridPosition.x, line.CenterGridPosition.y];
+            switch (winner)
+            {
+               case PlayerType.Circle: _playerCircleScore.Value++; break;
+               case PlayerType.Cross: _playerCrossScore.Value++; break;
+            }
+
+            TriggerOnGameWinRpc(i, winner);
             return;
          }
       }
@@ -293,6 +310,12 @@ public class GameManager : NetworkBehaviour
                return;
 
       TriggerOnGameTieRpc();
+   }
+
+   public void GetScores(out int crossScore, out int circleScore)
+   {
+      crossScore = _playerCrossScore.Value;
+      circleScore = _playerCircleScore.Value;
    }
 
 }
