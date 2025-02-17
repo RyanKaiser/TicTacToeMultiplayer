@@ -13,7 +13,7 @@ public class GameVisualManager : NetworkBehaviour
 
     private void Awake()
     {
-        visualGameObjList = new ();
+        visualGameObjList = new();
     }
 
     private void Start()
@@ -22,6 +22,7 @@ public class GameVisualManager : NetworkBehaviour
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
         GameManager.Instance.OnGameRematch += GameManager_OnGameRematch;
     }
+
 
     private void GameManager_OnGameRematch(object sender, System.EventArgs e)
     {
