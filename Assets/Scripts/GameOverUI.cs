@@ -2,17 +2,29 @@ using System;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameOverUI : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI gameOverText;
     [SerializeField] private Color winColor;
     [SerializeField] private Color loaerColor;
+    [SerializeField] private Button rematchButton;
 
+    private void Awake()
+    {
+        rematchButton.onClick.AddListener(() => GameManager.Instance.RematchRpc());
+    }
     private void Start()
     {
         Hide();
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+        GameManager.Instance.OnGameRematch += GameManager_OnGameRematch;
+    }
+
+    private void GameManager_OnGameRematch(object sender, System.EventArgs e)
+    {
+        Hide();
 
     }
 

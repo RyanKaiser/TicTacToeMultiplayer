@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -8,21 +9,32 @@ public class GameVisualManager : NetworkBehaviour
     [SerializeField] private Transform circlePrefab;
     [SerializeField] private Transform lineCompletePrefab;
     private const float GRID_SIZE = 3.1f;
+    private List<GameObject> visualGameObjList;
+
     private void Awake()
     {
-
+        visualGameObjList = new ();
     }
 
     private void Start()
     {
         GameManager.Instance.OnClickedOnGridPosition += GameManager_OnClickedOnGridPosition;
         GameManager.Instance.OnGameWin += GameManager_OnGameWin;
+        GameManager.Instance.OnGameRematch += GameManager_OnGameRematch;
+    }
+
+    private void GameManager_OnGameRematch(object sender, System.EventArgs e)
+    {
+        foreach (var obj in visualGameObjList)
+            Destroy(obj);
+
+        visualGameObjList.Clear();
     }
 
     private void GameManager_OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
     {
         if (!NetworkManager.Singleton.IsServer) return;
-        
+
         float eularAngle = 0f;
         switch (e.line.Orientation)
         {
@@ -45,7 +57,8 @@ public class GameVisualManager : NetworkBehaviour
             Quaternion.Euler(0, 0, eularAngle));
         lineCompleteTransform.GetComponent<NetworkObject>().Spawn(true);
 
-        Debug.Log("GameVisualManger.GameManager_GameWin()");
+        // Debug.Log("GameVisualManger.GameManager_GameWin()");
+        visualGameObjList.Add(lineCompleteTransform.gameObject);
 
     }
 
@@ -66,7 +79,8 @@ public class GameVisualManager : NetworkBehaviour
 
         Transform spawnedCrossTransform = Instantiate(prefab, GetGridWorldPosition(x, y), Quaternion.identity);
         spawnedCrossTransform.GetComponent<NetworkObject>().Spawn(true);
-        // spawnedCrossTransform.position = GetGridWorldPosition(x, y);
+
+        visualGameObjList.Add(spawnedCrossTransform.gameObject);
     }
 
     private Vector2 GetGridWorldPosition(int x, int y)

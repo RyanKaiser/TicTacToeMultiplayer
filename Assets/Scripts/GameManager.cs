@@ -31,12 +31,14 @@ public class GameManager : NetworkBehaviour
 
    public event EventHandler OnGameStarted;
    public event EventHandler<OnGameWinEventArgs> OnGameWin;
+
    public class OnGameWinEventArgs : EventArgs
    {
       public Line line;
       public PlayerType winPlayerType;
    }
    public event EventHandler OnCurrentPlayablePlayerTypeChanged;
+   public event EventHandler OnGameRematch;
 
    public enum PlayerType
    {
@@ -215,6 +217,25 @@ public class GameManager : NetworkBehaviour
          line = line,
          winPlayerType = winPlayerType//[line.CenterGridPosition.x, line.CenterGridPosition.y]
       });
+   }
+
+   [Rpc(SendTo.Server)]
+   public void RematchRpc()
+   {
+      Debug.Log("RematchRpc() called");
+      //reset playertype array
+      for (int i = 0; i < playerTypeArray.GetLength(0); i++)
+         for (int j = 0; j < playerTypeArray.GetLength(1); j++)
+            playerTypeArray[i, j] = PlayerType.None;
+
+      _currentPlayablePlayerType.Value = PlayerType.Cross;
+      TriggerOnRematchRpc();
+   }
+
+   [Rpc(SendTo.ClientsAndHost)]
+   private void TriggerOnRematchRpc()
+   {
+      OnGameRematch?.Invoke(this, EventArgs.Empty);
    }
 
    public PlayerType GetLocalPlayerType()
