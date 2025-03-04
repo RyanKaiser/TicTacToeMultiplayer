@@ -59,12 +59,18 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
-
 # Additions by Rito
 *.cmd
 *.cmd.meta
 _*
 
+# IntelliJ IDEA / Rider files
+.idea/
+
+# Visual Studio Code files
+.vscode/
+
+# MacOS files
 .DS_Store
 *.log
 
